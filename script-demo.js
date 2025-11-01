@@ -234,16 +234,30 @@ function processImageWithMetadata(imageData, metadata, index) {
                 exifObj["Exif"][piexif.ExifIFD.DateTimeDigitized] = exifDate;
             }
 
-            // Set user comment (for tags, comments, etc.)
-            const userComment = {
-                subject: metadata.subject,
-                tags: metadata.tags,
-                comments: metadata.comments,
-                altTag: metadata.altTag,
-                rating: metadata.rating
-            };
-            const commentStr = JSON.stringify(userComment);
-            exifObj["Exif"][piexif.ExifIFD.UserComment] = commentStr;
+            // Set rating (using the 0th IFD Rating tag)
+            if (metadata.rating) {
+                const ratingValue = parseInt(metadata.rating, 10);
+                if (!isNaN(ratingValue) && ratingValue >= 0 && ratingValue <= 5) {
+                    exifObj["0th"][0x4746] = ratingValue;
+                }
+            }
+
+            // Set tags (using XPKeywords tag 0x9c9e in 0th IFD)
+            // XPKeywords expects UTF-16LE encoded string
+            if (metadata.tags) {
+                const tagsUtf16 = stringToUtf16LE(metadata.tags);
+                exifObj["0th"][0x9c9e] = tagsUtf16;
+            }
+
+            // Set comments as plain text in UserComment
+            if (metadata.comments) {
+                exifObj["Exif"][piexif.ExifIFD.UserComment] = metadata.comments;
+            }
+
+            // Store subject in XPSubject field
+            if (metadata.subject) {
+                exifObj["0th"][0x9c9f] = stringToUtf16LE(metadata.subject); // XPSubject
+            }
 
             // Set GPS data if available
             if (metadata.latitude && metadata.longitude) {
@@ -280,6 +294,35 @@ function degToDmsRational(deg) {
     const s = Math.round(secFloat * 100);
     
     return [[d, 1], [m, 1], [s, 100]];
+}
+
+// Convert string to UTF-16LE byte array for Windows XP tags
+function stringToUtf16LE(str) {
+    const arr = [];
+    for (let i = 0; i < str.length; i++) {
+        const charCode = str.charCodeAt(i);
+        // Handle surrogate pairs for characters outside BMP (code points > 0xFFFF)
+        if (charCode >= 0xD800 && charCode <= 0xDBFF && i + 1 < str.length) {
+            // High surrogate, get the low surrogate
+            const lowSurrogate = str.charCodeAt(i + 1);
+            if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) {
+                // Valid surrogate pair, add both code units
+                arr.push(charCode & 0xff);
+                arr.push((charCode >> 8) & 0xff);
+                arr.push(lowSurrogate & 0xff);
+                arr.push((lowSurrogate >> 8) & 0xff);
+                i++; // Skip the low surrogate in next iteration
+                continue;
+            }
+        }
+        // Normal character or lone surrogate
+        arr.push(charCode & 0xff);
+        arr.push((charCode >> 8) & 0xff);
+    }
+    // Add null terminator
+    arr.push(0);
+    arr.push(0);
+    return arr;
 }
 
 // Format date for EXIF (YYYY:MM:DD HH:MM:SS)
