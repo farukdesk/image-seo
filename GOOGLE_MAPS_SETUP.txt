@@ -1,0 +1,45 @@
+<!-- 
+    GOOGLE MAPS API KEY SETUP
+    
+    To use the GEO location tagging feature, you need to configure your Google Maps API key.
+    
+    Follow these steps:
+    
+    1. Get your Google Maps API Key:
+       - Go to https://console.cloud.google.com/
+       - Create a new project or select an existing one
+       - Enable these APIs:
+         * Maps JavaScript API
+         * Places API
+         * Geocoding API
+       - Create an API key in Credentials section
+       
+    2. Replace the API key in index.html:
+       - Open index.html
+       - Find this line (around line 8):
+         <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+       - Replace YOUR_GOOGLE_MAPS_API_KEY with your actual API key
+       
+    3. Optional - Restrict your API key:
+       - In Google Cloud Console, go to Credentials
+       - Click on your API key
+       - Under "Application restrictions", select "HTTP referrers"
+       - Add your website domain (e.g., https://yourdomain.com/*)
+       - Under "API restrictions", select "Restrict key"
+       - Choose only the APIs you enabled above
+       
+    4. Important Notes:
+       - Keep your API key secure
+       - Don't commit your actual API key to public repositories
+       - Consider using environment-specific keys for production
+       - Monitor your API usage in Google Cloud Console
+       
+    For testing locally without restrictions:
+    - You can leave the key unrestricted initially
+    - But remember to add restrictions before deploying to production
+    
+    If you don't want to use the GEO tagging feature:
+    - You can remove the Google Maps script tag from index.html
+    - The rest of the application will work without it
+    - The map section will show an error but other features remain functional
+-->
