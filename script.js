@@ -374,6 +374,21 @@ function stringToUtf16LE(str) {
     const arr = [];
     for (let i = 0; i < str.length; i++) {
         const charCode = str.charCodeAt(i);
+        // Handle surrogate pairs for characters outside BMP (code points > 0xFFFF)
+        if (charCode >= 0xD800 && charCode <= 0xDBFF && i + 1 < str.length) {
+            // High surrogate, get the low surrogate
+            const lowSurrogate = str.charCodeAt(i + 1);
+            if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) {
+                // Valid surrogate pair, add both code units
+                arr.push(charCode & 0xff);
+                arr.push((charCode >> 8) & 0xff);
+                arr.push(lowSurrogate & 0xff);
+                arr.push((lowSurrogate >> 8) & 0xff);
+                i++; // Skip the low surrogate in next iteration
+                continue;
+            }
+        }
+        // Normal character or lone surrogate
         arr.push(charCode & 0xff);
         arr.push((charCode >> 8) & 0xff);
     }
