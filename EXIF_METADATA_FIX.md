@@ -18,12 +18,15 @@ The previous implementation stored all metadata (rating, tags, comments, subject
 ### 1. Rating Field Fix
 **EXIF Tag**: `0x4746` (Rating in 0th IFD)
 - **Before**: `{"rating": "5"}` stored in UserComment JSON
-- **After**: `5` stored as integer in proper Rating tag
+- **After**: `5` stored as integer in proper Rating tag (0-5 range validated)
 - **Code Change**:
 ```javascript
 // Set rating (using the 0th IFD Rating tag)
 if (metadata.rating) {
-    exifObj["0th"][0x4746] = parseInt(metadata.rating);
+    const ratingValue = parseInt(metadata.rating, 10);
+    if (!isNaN(ratingValue) && ratingValue >= 0 && ratingValue <= 5) {
+        exifObj["0th"][0x4746] = ratingValue;
+    }
 }
 ```
 
