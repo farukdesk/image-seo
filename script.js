@@ -314,7 +314,7 @@ function processImageWithMetadata(imageData, metadata, index) {
 
             // Set rating (using the 0th IFD Rating tag)
             if (metadata.rating) {
-                exifObj["0th"][0x4746] = parseInt(metadata.rating);
+                exifObj["0th"][0x4746] = parseInt(metadata.rating, 10);
             }
 
             // Set tags (using XPKeywords tag 0x9c9e in 0th IFD)
