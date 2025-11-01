@@ -1,14 +1,10 @@
 // Global variables
 let uploadedImages = [];
 let currentImageIndex = 0;
-let map;
-let marker;
-let geocoder;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
-    initializeMap();
 });
 
 // Initialize all event listeners
@@ -34,88 +30,6 @@ function initializeEventListeners() {
     applyMetadataBtn.addEventListener('click', applyMetadata);
     downloadBtn.addEventListener('click', downloadImage);
     resetBtn.addEventListener('click', resetForm);
-
-    // Location search
-    const locationSearch = document.getElementById('locationSearch');
-    if (typeof google !== 'undefined' && google.maps && google.maps.places) {
-        const autocomplete = new google.maps.places.Autocomplete(locationSearch);
-        autocomplete.bindTo('bounds', map);
-        autocomplete.addListener('place_changed', function() {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) {
-                return;
-            }
-            if (place.geometry.viewport) {
-                map.fitBounds(place.geometry.viewport);
-            } else {
-                map.setCenter(place.geometry.location);
-                map.setZoom(17);
-            }
-            updateMapLocation(place.geometry.location);
-        });
-    }
-}
-
-// Initialize Google Map
-function initializeMap() {
-    const mapElement = document.getElementById('map');
-    const defaultLocation = { lat: 40.7128, lng: -74.0060 }; // New York
-
-    map = new google.maps.Map(mapElement, {
-        center: defaultLocation,
-        zoom: 12,
-        mapTypeControl: true,
-        streetViewControl: false,
-    });
-
-    // Add click listener to set marker
-    map.addListener('click', function(event) {
-        updateMapLocation(event.latLng);
-    });
-
-    // Initialize geocoder
-    geocoder = new google.maps.Geocoder();
-
-    // Try to get user's current location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                const pos = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                map.setCenter(pos);
-                updateMapLocation(new google.maps.LatLng(pos.lat, pos.lng));
-            },
-            function() {
-                // If geolocation fails, keep default location
-            }
-        );
-    }
-}
-
-// Update map marker and coordinates
-function updateMapLocation(location) {
-    if (marker) {
-        marker.setMap(null);
-    }
-
-    marker = new google.maps.Marker({
-        position: location,
-        map: map,
-        draggable: true,
-        animation: google.maps.Animation.DROP
-    });
-
-    // Update coordinates
-    document.getElementById('latitude').value = location.lat().toFixed(6);
-    document.getElementById('longitude').value = location.lng().toFixed(6);
-
-    // Add drag listener
-    marker.addListener('drag', function(event) {
-        document.getElementById('latitude').value = event.latLng.lat().toFixed(6);
-        document.getElementById('longitude').value = event.latLng.lng().toFixed(6);
-    });
 }
 
 // Handle drag over
@@ -284,6 +198,14 @@ function processImageWithMetadata(imageData, metadata, index) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
 
+            // Check if piexif is available
+            if (typeof piexif === 'undefined') {
+                console.warn('piexif library not loaded, metadata will not be embedded in EXIF');
+                imageData.processedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                imageData.metadata = metadata;
+                return;
+            }
+
             // Prepare EXIF data
             const exifObj = {
                 "0th": {},
@@ -328,10 +250,12 @@ function processImageWithMetadata(imageData, metadata, index) {
                 const lat = parseFloat(metadata.latitude);
                 const lng = parseFloat(metadata.longitude);
                 
-                exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = lat >= 0 ? 'N' : 'S';
-                exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = degToDmsRational(Math.abs(lat));
-                exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = lng >= 0 ? 'E' : 'W';
-                exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = degToDmsRational(Math.abs(lng));
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = lat >= 0 ? 'N' : 'S';
+                    exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = degToDmsRational(Math.abs(lat));
+                    exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = lng >= 0 ? 'E' : 'W';
+                    exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = degToDmsRational(Math.abs(lng));
+                }
             }
 
             // Insert EXIF data
@@ -406,11 +330,6 @@ function resetForm() {
     // Reset rating to 5 stars
     document.getElementById('rating').value = '5';
     
-    // Clear map marker
-    if (marker) {
-        marker.setMap(null);
-        marker = null;
-    }
     document.getElementById('latitude').value = '';
     document.getElementById('longitude').value = '';
 }

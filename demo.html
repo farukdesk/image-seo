@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image SEO Optimizer</title>
+    <title>Image SEO Optimizer - Demo (Offline)</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
-    <!-- 
-        IMPORTANT: Replace YOUR_GOOGLE_MAPS_API_KEY with your actual Google Maps API key
-        See GOOGLE_MAPS_SETUP.txt for detailed instructions
-        Never commit your actual API key to public repositories
-    -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Image SEO Optimizer</h1>
+            <h1>Image SEO Optimizer - Demo Mode</h1>
             <p>Upload, optimize, and download your images with enhanced SEO metadata</p>
+            <p style="color: #f59e0b; font-size: 0.9rem;">⚠️ Demo mode: GEO tagging requires Google Maps API key in production version (index.html)</p>
         </header>
 
         <div class="upload-section">
@@ -104,19 +99,15 @@
 
                 <div class="geo-section">
                     <h3>GEO Location Tagging</h3>
-                    <div class="form-group">
-                        <label for="locationSearch">Search Location</label>
-                        <input type="text" id="locationSearch" placeholder="Search for a location">
-                    </div>
-                    <div id="map" class="map"></div>
+                    <p style="color: #6b7280; font-size: 0.9rem;">Note: Map functionality requires Google Maps API key. You can still manually enter coordinates below.</p>
                     <div class="geo-info">
                         <div class="form-group">
                             <label for="latitude">Latitude</label>
-                            <input type="text" id="latitude" name="latitude" placeholder="Latitude" readonly>
+                            <input type="text" id="latitude" name="latitude" placeholder="e.g., 40.7128">
                         </div>
                         <div class="form-group">
                             <label for="longitude">Longitude</label>
-                            <input type="text" id="longitude" name="longitude" placeholder="Longitude" readonly>
+                            <input type="text" id="longitude" name="longitude" placeholder="e.g., -74.0060">
                         </div>
                     </div>
                 </div>
@@ -130,6 +121,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script-demo.js"></script>
 </body>
 </html>

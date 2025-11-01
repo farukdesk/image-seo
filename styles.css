@@ -357,6 +357,17 @@ header p {
     animation: slideIn 0.3s ease;
 }
 
+/* Error message */
+.error-message {
+    background: #ef4444;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+}
+
 @keyframes slideIn {
     from {
         opacity: 0;
