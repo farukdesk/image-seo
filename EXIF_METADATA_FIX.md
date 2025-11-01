@@ -65,7 +65,7 @@ if (metadata.subject) {
 ```
 
 ### 5. New Helper Function
-Added `stringToUtf16LE()` function to convert strings to UTF-16LE byte arrays for Windows-specific EXIF tags (XPKeywords, XPSubject, etc.):
+Added `stringToUtf16LE()` function to convert strings to UTF-16LE byte arrays for Windows-specific EXIF tags (XPKeywords, XPSubject, etc.). The function properly handles surrogate pairs for characters outside the Basic Multilingual Plane (emoji, etc.):
 
 ```javascript
 // Convert string to UTF-16LE byte array for Windows XP tags
@@ -73,6 +73,21 @@ function stringToUtf16LE(str) {
     const arr = [];
     for (let i = 0; i < str.length; i++) {
         const charCode = str.charCodeAt(i);
+        // Handle surrogate pairs for characters outside BMP (code points > 0xFFFF)
+        if (charCode >= 0xD800 && charCode <= 0xDBFF && i + 1 < str.length) {
+            // High surrogate, get the low surrogate
+            const lowSurrogate = str.charCodeAt(i + 1);
+            if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) {
+                // Valid surrogate pair, add both code units
+                arr.push(charCode & 0xff);
+                arr.push((charCode >> 8) & 0xff);
+                arr.push(lowSurrogate & 0xff);
+                arr.push((lowSurrogate >> 8) & 0xff);
+                i++; // Skip the low surrogate in next iteration
+                continue;
+            }
+        }
+        // Normal character or lone surrogate
         arr.push(charCode & 0xff);
         arr.push((charCode >> 8) & 0xff);
     }
@@ -136,6 +151,7 @@ EXIF readers should show:
 - [x] Helper function stringToUtf16LE() added and working
 
 ## Notes
-- The altTag field is kept for HTML alt attribute purposes but not stored in EXIF as there's no standard EXIF field for it
+- The altTag field is kept for HTML alt attribute purposes and is not stored in EXIF, as there is no standard EXIF field for HTML alt tags. The altTag is used by the application for accessibility but is not embedded in the image file.
 - GPS coordinates, author, copyright, and date fields remain unchanged as they were already using proper EXIF tags
 - The new implementation maintains backward compatibility while improving metadata visibility
+- UTF-16LE encoding now properly handles surrogate pairs, allowing emoji and other characters outside the Basic Multilingual Plane in tags and subjects

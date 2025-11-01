@@ -251,7 +251,7 @@ function processImageWithMetadata(imageData, metadata, index) {
                 exifObj["Exif"][piexif.ExifIFD.UserComment] = metadata.comments;
             }
 
-            // Store subject and altTag in a custom field for reference
+            // Store subject in XPSubject field
             if (metadata.subject) {
                 exifObj["0th"][0x9c9f] = stringToUtf16LE(metadata.subject); // XPSubject
             }
